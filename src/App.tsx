@@ -1,13 +1,9 @@
-import type { Component } from 'solid-js';
+import routes from './routes';
+import { useRoutes } from '@solidjs/router'
 
-const App: Component = () => {
-  return (
-    <div>
-      <h1 class="text-3xl font-bold underline">
-        Hello world!
-      </h1>
-    </div>
-  );
+const App = () => {
+  const Routes = useRoutes(routes)
+  return <Routes />;
 };
 
 export default App;
