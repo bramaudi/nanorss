@@ -1,3 +1,60 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+header h1 {
+    margin: 0 0 .5em;
+}
+
+header h1 span {
+    font-size: large;
+    color: #ff982b;
+}
+
+nav a {
+    margin: 0 .7em 0 0;
+}
+
+nav a.active {
+    font-weight: bold;
+}
+
+ul.items {
+    padding: unset;
+}
+
+ul.items li {
+    transition: visibility .4s, opacity .4s, max-height .4s;
+    display: flex;
+    opacity: 1;
+    max-height: 10em;
+}
+
+ul.items li.hidden {
+    transition: visibility .4s, opacity .4s, max-height .4s;
+    visibility: hidden;
+    opacity: 0;
+    max-height: 0;
+}
+
+ul.items li>span {
+    /* Carret */
+    padding-right: .5em;
+    margin-top: -.2em;
+}
+
+ul.items li>div {
+    padding-bottom: .7em;
+    line-height: 1.2;
+}
+
+ul.items li>div>a {
+    margin-right: .3em;
+}
+ul.items li>div>a.readed {
+    color: #7393ac;
+}
+
+ul.items li>div small a {
+    color: #777;
+}
+
+ul.items li>div small strong {
+    color: #aaa;
+}
