@@ -2,7 +2,7 @@ import db from "../../db"
 import { createResource, For } from "solid-js"
 import { createDexieArrayQuery } from "solid-dexie"
 import { A } from "@solidjs/router"
-import AddFeed from "../../components/add-feed"
+import AddFeed from "../../components/AddFeed"
 import { Feed } from "../../types"
 
 export default function () {
@@ -44,7 +44,6 @@ export default function () {
                                 </A>
                                 <span class="ml-1">({feed.itemCount})</span>
                                 <span class="text-xs">
-                                    <a href="#" class="ml-2 text-blue-800" onclick={() => feedsDelete(feed)}>edit</a>
                                     <a href="#" class="ml-2 text-red-700" onclick={() => feedsDelete(feed)}>delete</a>
                                 </span>
                                 <span class="block text-xs text-slate-600">{new URL(feed.link).host}</span>

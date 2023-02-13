@@ -3,13 +3,14 @@ import { createSignal, For } from "solid-js"
 import { createDexieArrayQuery, createDexieSignalQuery } from "solid-dexie"
 import { A } from "@solidjs/router"
 import { Feed, Item } from "../../types"
+import { isTrue } from "../../utils"
 
 interface ComputedItem extends Item {
     feed: Feed
 }
 
 export default function () {
-    const [viewAll, setViewAll] = createSignal(false)
+    const [viewAll, setViewAll] = createSignal(isTrue(localStorage.getItem('view_all')))
     const feeds = createDexieArrayQuery(() => db.table('feeds').toArray())
     const items = createDexieArrayQuery(() => {
         return db.table('items').toArray().then(items => {
@@ -24,12 +25,17 @@ export default function () {
         })
     }
 
+    function toggleViewAll() {
+        setViewAll(v => !v)
+        localStorage.setItem('view_all', viewAll().toString())
+    }
+
     return (
         <>
             <h2>Unread items</h2>
             View: 
-            {viewAll() ? <strong>All</strong> : <A href="" onClick={() => setViewAll(v => !v)}>All</A>} | 
-            {!viewAll() ? <strong>Unread</strong> : <A href="" onClick={() => setViewAll(v => !v)}>Unread</A>}
+            {viewAll() ? <strong>All</strong> : <A href="" onClick={toggleViewAll}>All</A>} | 
+            {!viewAll() ? <strong>Unread</strong> : <A href="" onClick={toggleViewAll}>Unread</A>}
 
             <ul class="items">
                 <For each={items}>

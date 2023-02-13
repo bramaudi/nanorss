@@ -1,35 +1,21 @@
 import db from "../../db"
-import { A, useParams } from "@solidjs/router"
+import { createEffect, createResource, createSignal, For } from "solid-js"
 import { createDexieArrayQuery, createDexieSignalQuery } from "solid-dexie"
-import { createEffect, createResource, createSignal, For, Show } from "solid-js"
+import { A, useParams } from "@solidjs/router"
 import { Feed, Item } from "../../types"
-import {
-    RiSystemEyeOffFill as EyeClose,
-    RiSystemEyeFill as EyeOpen,
-    RiBusinessBookmarkFill as BookmarkFill,
-    RiBusinessBookmark2Fill as BookmarkLine,
-    // RiMapPushpin2Fill as PinFill,
-    // RiMapPushpin2Line as PinLine
-} from 'solid-icons/ri'
+import { proxyUrl } from "../../consts"
 
-export default function() {
-    const params = useParams()
-    const [viewAll, setViewAll] = createSignal(0)
-    const [viewBookmark, setViewBookmark] = createSignal(0)
-    const [feed, { refetch }] = createResource<Feed>(() => {
-        return db.table('feeds').get(Number(params.id))
-    })
-    const [items, { refetch: itemsRefetch, mutate: itemsMutate }] = createResource<Item[]>(() => {
-        return createDexieArrayQuery(() => db.table('items').where({ feedId: Number(params.id) }).toArray())
-    })
-    const countItemsUnread = ((feedId: number) => createDexieSignalQuery(() => db.table('items').where({ feedId, read: 0 }).count()))(Number(params.id))
+interface ComputedItem extends Item {
+    feed: Feed
+}
 
-    async function feedsEdit(prop: string, value: string|number|boolean) {
-        await db.transaction('rw', db.table('feeds'), () => {
-            db.table('feeds').update(Number(params.id), { [prop]: value })
-        })
-        refetch()
-    }
+export default function () {
+    const params = useParams<{ id: string }>()
+    const [viewAll, setViewAll] = createSignal(false)
+    const feed = createDexieSignalQuery<Feed>(() => db.table('feeds').get(Number(params.id)))
+    const [items, { refetch: refetchItems, mutate: mutateItems }] = createResource<Item[]>(() => {
+        return db.table('items').where({ feedId: Number(params.id) }).toArray()
+    })
 
     function markAsRead(item: Item) {
         db.transaction('rw', db.table('items'), () => {
@@ -38,64 +24,70 @@ export default function() {
     }
 
     function toggleViewAll() {
-        setViewAll(v => Number(!v))
+        setViewAll(v => !v)
         db.transaction('rw', db.table('feeds'), () => {
-            db.table('feeds').where({ id: Number(params.id) }).modify({ view_all: viewAll() })
+            db.table('feeds').where({ id: feed()?.id }).modify({ view_all: Number(viewAll()) })
         })
     }
 
-    createEffect(() => {
-        if (viewBookmark()) {
-            itemsMutate(items => items?.filter(item => item.bookmark))
-        } else {
-            itemsRefetch()
-        }
+    async function fetchFeed() {
+        const resp = await fetch(proxyUrl + feed()!.url)
+        const data = await resp.json()
+        let itemsNew: Item[] = [];
+        data.items.forEach((item: Item) => {
+            const index = items()!.findIndex(v => v.link === item.link)
+            if (index <= -1) {
+                itemsNew.push({
+                    ...item,
+                    feedId: Number(params.id),
+                    read: 0,
+                    bookmark: 0,
+                })
+            }
+        })
 
-        if (feed()) {
-            setViewAll(feed()!.view_all)
-        }
+        await db.transaction('rw', db.table('items'), async () => {
+            db.table('items').bulkAdd(itemsNew)
+        })
+
+        refetchItems()
+    }
+    
+    createEffect(() => {
+        // load saved preferences
+        setViewAll(!!feed()?.view_all)
     })
 
     return (
         <>
-            <Show when={feed()}>
-                <div class="mr-2 pl-2 py-1 flex items-center">
-                    <div>
-                        <A href={`/feed/${feed()!.id}`}>
-                            <strong>{feed()!.title}</strong>
-                        </A>
-                        <span class="ml-1">({countItemsUnread})</span>
-                        <span class="block text-xs text-slate-600">{new URL(feed()!.link).host}</span>
-                    </div>
-                    <div class="ml-auto">
-                        <button class="ml-2 text-2xl" onClick={() => toggleViewAll()}>
-                            <Show when={!viewAll()}><EyeClose /></Show>
-                            <Show when={viewAll()}><EyeOpen /></Show>
-                        </button>
-                        <button class="ml-2 text-2xl" onClick={() => setViewBookmark(v => Number(!v))}>
-                            <Show when={!viewBookmark()}><BookmarkFill /></Show>
-                            <Show when={viewBookmark()}><BookmarkLine /></Show>
-                        </button>
-                    </div>
-                </div>
-                <ul class="mt-1 border-t border-gray-700">
-                    <For each={items()}>
-                        {item => (
-                            <li class="mx-2 py-1" classList={{ hidden: !viewAll() && !!item.read }}>
-                                <A href={feed()!.read_external ? item.link : `/item/${item.id}`} onClick={() => markAsRead(item)}>
-                                    <span classList={{
-                                        'font-semibold': !item.read,
-                                        'text-slate-500': !!item.read
-                                        }}>{item.title}</span>
+            <h2>{feed()?.title}</h2>
+            <button onClick={fetchFeed} style={{ "margin-right": '1em' }}>Fetch</button>
+            View: 
+            {viewAll() ? <strong>All</strong> : <A href="" onClick={toggleViewAll}>All</A>} | 
+            {!viewAll() ? <strong>Unread</strong> : <A href="" onClick={toggleViewAll}>Unread</A>}
+
+            <ul class="items">
+                <For each={items()?.reverse()}>
+                    {(item) => (
+                        <li class="item" classList={{ hidden: !viewAll() && !!item.read }}>
+                            <span>&rsaquo;</span>
+                            <div>
+                                <A
+                                    href={feed()?.read_external ? item.link : `/item/${item.id}`} onClick={() => markAsRead(item)}
+                                    class="title"
+                                    classList={{ readed: !!item.read }}
+                                >
+                                    {item.title}
                                 </A>
-                                <span class="block text-xs text-slate-600">
-                                    {item.pubDate} | {new URL(item.link).host}
+                                <a class="link" href={item.link}>({new URL(item.link).origin})</a>
+                                <span class="meta">
+                                    <span class="date">{item.pubDate}</span>
                                 </span>
-                            </li>
-                        )}
-                    </For>
-                </ul>
-            </Show>
+                            </div>
+                        </li>
+                    )}
+                </For>
+            </ul>
         </>
     )
 }

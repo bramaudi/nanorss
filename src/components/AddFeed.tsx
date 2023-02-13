@@ -4,8 +4,7 @@ import { proxyUrl } from "../consts"
 import { Feed, Item } from "../types"
 
 export default function AddFeed() {
-    // const [url, setUrl] = createSignal('https://news.ycombinator.com/rss')
-    const [url, setUrl] = createSignal('https://lukesmith.xyz/index.xml')
+    const [url, setUrl] = createSignal('')
     const [loading, setLoading] = createSignal(false)
     const [feed, setFeed] = createSignal<Feed>()
     const [items, setItems] = createSignal<Item[]>()
@@ -17,9 +16,8 @@ export default function AddFeed() {
         await fetch(proxyUrl + url())
             .then(response => (response.json()))
             .then(json => {
-                const { title, link, description, item } = json.channel
-                setFeed({ id: 0, title, link, description, read_external: 0, view_all: 0 })
-                setItems(item)
+                setFeed(json.channel)
+                setItems(json.items)
             })
 
         setLoading(false)
@@ -27,11 +25,8 @@ export default function AddFeed() {
 
     async function feedsInsert() {
         let lastId = await db.transaction('rw', db.table('feeds'), () => {
-            const { title, link, description } = feed() as Feed
             return db.table('feeds').add({
-                title,
-                link,
-                description,
+                ...feed(),
                 read_external: 0
             })
         })
@@ -43,9 +38,9 @@ export default function AddFeed() {
                     ...item,
                     feedId: lastId,
                     read: 0,
-                    pin: 0,
                     bookmark: 0,
                 }))
+                .reverse() // reverse so latest item get higher DB id
 
             db.table('items').bulkAdd(itemslist)
         })
@@ -59,7 +54,7 @@ export default function AddFeed() {
                 <input
                     autocomplete="on"
                     onInput={e => setUrl(e.currentTarget.value)}
-                    value={url()}
+                    placeholder={'https://lukesmith.xyz/index.xml'}
                     class="w-full p-2 rounded"
                 />
                 <button class="ml-2 p-2 rounded bg-orange-900 text-white">Find</button>

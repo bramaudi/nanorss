@@ -13,14 +13,11 @@ export default function() {
     return (
         <>
             <Show when={item()}>
-                <div class="mr-2 px-2 py-1">
-                    <div class="font-semibold">{item().title}</div>
-                    <span class="block text-xs text-slate-600">{item().pubDate}</span>
-                </div>
-                <article
-                    innerHTML={typeof item().description === 'object' ? '' : item().description }
-                    class="prose mt-2 px-2 py-1 border-t border-gray-700"
-                ></article>
+                <article>
+                    <h2>{item().title}</h2>
+                    <span>{item().pubDate}</span>
+                    <div innerHTML={typeof item().content === 'object' ? '' : item().content }></div>
+                </article>
             </Show>
         </>
     )

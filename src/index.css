@@ -3,7 +3,7 @@ header h1 {
 }
 
 header h1 span {
-    font-size: large;
+    font-size: x-large;
     color: #ff982b;
 }
 
@@ -15,46 +15,52 @@ nav a.active {
     font-weight: bold;
 }
 
-ul.items {
+.items {
     padding: unset;
 }
 
-ul.items li {
+.item {
     transition: visibility .4s, opacity .4s, max-height .4s;
     display: flex;
     opacity: 1;
     max-height: 10em;
 }
 
-ul.items li.hidden {
-    transition: visibility .4s, opacity .4s, max-height .4s;
+.item.hidden {
+    transition: visibility .1s, opacity .1s, max-height .1s;
     visibility: hidden;
     opacity: 0;
     max-height: 0;
 }
 
-ul.items li>span {
-    /* Carret */
+.item > span {
     padding-right: .5em;
     margin-top: -.2em;
 }
 
-ul.items li>div {
+.item > div {
     padding-bottom: .7em;
     line-height: 1.2;
 }
 
-ul.items li>div>a {
+.item .title {
     margin-right: .3em;
 }
-ul.items li>div>a.readed {
+
+.item .title.readed {
     color: #7393ac;
 }
 
-ul.items li>div small a {
+.item .meta {
+    font-size: small;
+    color: #aaa;
+}
+
+.item .link {
+    font-size: small;
     color: #777;
 }
 
-ul.items li>div small strong {
-    color: #aaa;
+.item .meta .date {
+    display: block;
 }
