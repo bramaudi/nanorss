@@ -1,12 +1,12 @@
 import db from "../db"
 import { createSignal, Show } from "solid-js"
 import { proxyUrl } from "../consts"
-import { Feed, Item } from "../types"
+import { Channel, Item } from "../types"
 
 export default function AddFeed() {
     const [url, setUrl] = createSignal('')
     const [loading, setLoading] = createSignal(false)
-    const [feed, setFeed] = createSignal<Feed>()
+    const [feed, setFeed] = createSignal<Channel>()
     const [items, setItems] = createSignal<Item[]>()
 
     async function feedsAdd(e: SubmitEvent) {
