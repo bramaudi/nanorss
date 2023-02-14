@@ -64,3 +64,11 @@ nav a.active {
 .item .meta .date {
     display: block;
 }
+
+.flex {
+    display: flex;
+}
+
+.w-full {
+    width: 100%;
+}

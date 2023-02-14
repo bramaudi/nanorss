@@ -50,25 +50,24 @@ export default function AddFeed() {
 
     return (
         <>
-            <form onsubmit={feedsAdd} class="flex p-2">
+            <br />
+            <form onsubmit={feedsAdd} class="flex">
                 <input
                     autocomplete="on"
                     onInput={e => setUrl(e.currentTarget.value)}
                     placeholder={'https://lukesmith.xyz/index.xml'}
-                    class="w-full p-2 rounded"
+                    class="w-full"
                 />
-                <button class="ml-2 p-2 rounded bg-orange-900 text-white">Find</button>
+                <button>Search</button>
             </form>
-            <div class="px-2">
-                <Show when={loading()}>Fetching ...</Show>
-                <Show when={feed()?.title}>
-                    <div tabIndex={1} class="p-2 rounded cursor-pointer bg-slate-200" onclick={() => feedsInsert()}>
-                        <strong>{feed()!.title}</strong>
-                        <small class="block text-gray-500">{feed()!.link}</small>
-                        <p>{feed()!.description}</p>
-                    </div>
-                </Show>
-            </div>
+            <Show when={loading()}>Fetching ...</Show>
+            <Show when={feed()?.title}>
+                <div tabIndex={1} class="p-2 rounded cursor-pointer bg-slate-200" onclick={() => feedsInsert()}>
+                    <strong>{feed()!.title}</strong>
+                    <small class="block text-gray-500">{feed()!.link}</small>
+                    <p>{feed()!.description}</p>
+                </div>
+            </Show>
         </>
     )
 }

@@ -1,20 +1,25 @@
 import db from "../../db"
 import { createEffect, createResource, createSignal, For } from "solid-js"
-import { createDexieArrayQuery, createDexieSignalQuery } from "solid-dexie"
+import { createDexieSignalQuery } from "solid-dexie"
 import { A, useParams } from "@solidjs/router"
-import { Feed, Item } from "../../types"
+import { Channel, Item } from "../../types"
 import { proxyUrl } from "../../consts"
-
-interface ComputedItem extends Item {
-    feed: Feed
-}
 
 export default function () {
     const params = useParams<{ id: string }>()
     const [viewAll, setViewAll] = createSignal(false)
-    const feed = createDexieSignalQuery<Feed>(() => db.table('feeds').get(Number(params.id)))
+    const feed = createDexieSignalQuery<Channel>(() => db.table('feeds').get(Number(params.id)))
     const [items, { refetch: refetchItems, mutate: mutateItems }] = createResource<Item[]>(() => {
-        return db.table('items').where({ feedId: Number(params.id) }).toArray()
+        return db.table('items')
+            .where({ feedId: Number(params.id) })
+            .toArray().then((arr: Item[]) => 
+                arr
+                    .sort((a, b) => a.title.localeCompare(b.title, 'en', { numeric: true }))
+                    .sort((a, b) => (
+                        new Date(a.lastModified).valueOf() -
+                        new Date(b.lastModified).valueOf()
+                    ))
+            )
     })
 
     function markAsRead(item: Item) {
@@ -41,14 +46,14 @@ export default function () {
                     ...item,
                     feedId: Number(params.id),
                     read: 0,
-                    bookmark: 0,
+                    saved: 0,
                 })
             }
         })
 
-        await db.transaction('rw', db.table('items'), async () => {
-            db.table('items').bulkAdd(itemsNew)
-        })
+        await db.transaction('rw', db.table('items'),
+            () => db.table('items').bulkAdd(itemsNew)
+        )
 
         refetchItems()
     }
@@ -81,7 +86,7 @@ export default function () {
                                 </A>
                                 <a class="link" href={item.link}>({new URL(item.link).origin})</a>
                                 <span class="meta">
-                                    <span class="date">{item.pubDate}</span>
+                                    <span class="date">{item.lastModified}</span>
                                 </span>
                             </div>
                         </li>

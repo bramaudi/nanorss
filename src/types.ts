@@ -15,6 +15,7 @@ export interface Item {
 
     title: string
     link: string
+    summary: string
     content: string
     lastModified: string
 
