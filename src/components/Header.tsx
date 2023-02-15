@@ -10,7 +10,7 @@ export default function () {
             <header>
                 <A href="/" style={{ 'text-decoration': 'none' }}>
                     <h1 style={{ 'font-size': '1.5em' }}>
-                        <span>(╭ರ_•́)</span> NanoRSS
+                        <span>(╭ರ_•́)</span> nanorss
                     </h1>
                 </A>
             </header>
