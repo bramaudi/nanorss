@@ -1,1 +1,0 @@
-export const proxyUrl = 'https://rss2json.vercel.app/api?url='

@@ -1,3 +1,10 @@
+export interface JSONResponse {
+    status: "success" | "error"
+    message: string | null
+    channel?: Channel
+    items?: Item[]
+}
+
 export interface Channel {
     id: number
     
@@ -15,6 +22,9 @@ export interface Item {
 
     title: string
     link: string
+    author?: {
+        name: string
+    }
     summary: string
     content: string
     lastModified: string

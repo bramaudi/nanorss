@@ -1,59 +1,44 @@
-import db from "../db"
-import { createSignal, Show } from "solid-js"
-import { proxyUrl } from "../consts"
-import { Channel, Item } from "../types"
+import { createResource, createSignal, Show } from "solid-js"
+import { downloadChannel, insertChannel } from "../services/channel"
+import { JSONResponse } from "../types"
 
-export default function AddFeed() {
-    const [url, setUrl] = createSignal('')
+type Props = {
+    onInsert: () => unknown
+}
+export default function AddFeed(props: Props) {
+    const [url, setUrl] = createSignal('https://lukesmith.xyz/index.xml')
     const [loading, setLoading] = createSignal(false)
-    const [feed, setFeed] = createSignal<Channel>()
-    const [items, setItems] = createSignal<Item[]>()
+    const [json, setJson] = createSignal<JSONResponse>()
 
-    async function feedsAdd(e: SubmitEvent) {
+    async function handlerDownloadChannel(e: SubmitEvent) {
         e.preventDefault()
         setLoading(true)
-
-        await fetch(proxyUrl + url())
-            .then(response => (response.json()))
-            .then(json => {
-                setFeed(json.channel)
-                setItems(json.items)
-            })
-
+        setJson(await downloadChannel(url()))
         setLoading(false)
     }
 
-    async function feedsInsert() {
-        let lastId = await db.transaction('rw', db.table('feeds'), () => {
-            return db.table('feeds').add({
-                ...feed(),
-                read_external: 0
-            })
+    async function handlerInsertChannel(e: SubmitEvent) {
+        e.preventDefault()
+        await insertChannel(json()?.channel!, json()?.items!)
+        setJson()
+        props.onInsert() // call `execute` on parent
+    }
+
+    function modifyFeedName(e: InputEvent) {
+        const { value: title } = e.currentTarget as HTMLInputElement
+        setJson(data => {
+            data!.channel!.title = title
+            return data
         })
-
-        // Add items
-        await db.transaction('rw', db.table('items'), () => {
-            const itemslist = items()!
-                .map(item => ({
-                    ...item,
-                    feedId: lastId,
-                    read: 0,
-                    bookmark: 0,
-                }))
-                .reverse() // reverse so latest item get higher DB id
-
-            db.table('items').bulkAdd(itemslist)
-        })
-
-        setFeed(undefined)
     }
 
     return (
         <>
             <br />
-            <form onsubmit={feedsAdd} class="flex">
+            <form onsubmit={handlerDownloadChannel} class="flex">
                 <input
                     autocomplete="on"
+                    value={url()}
                     onInput={e => setUrl(e.currentTarget.value)}
                     placeholder={'https://lukesmith.xyz/index.xml'}
                     class="w-full"
@@ -61,12 +46,15 @@ export default function AddFeed() {
                 <button>Search</button>
             </form>
             <Show when={loading()}>Fetching ...</Show>
-            <Show when={feed()?.title}>
-                <div tabIndex={1} class="p-2 rounded cursor-pointer bg-slate-200" onclick={() => feedsInsert()}>
-                    <strong>{feed()!.title}</strong>
-                    <small class="block text-gray-500">{feed()!.link}</small>
-                    <p>{feed()!.description}</p>
-                </div>
+            <Show when={json()?.channel?.title}>
+                <form onSubmit={handlerInsertChannel}>
+                    <label for="feed-name">Name</label>
+                    <input id="feed-name" type="text"
+                        value={json()!.channel?.title}
+                        onInput={modifyFeedName}
+                    />
+                    <button>Add</button>
+                </form>
             </Show>
         </>
     )

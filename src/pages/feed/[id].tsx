@@ -1,26 +1,16 @@
-import db from "../../db"
-import { createEffect, createResource, createSignal, For } from "solid-js"
-import { createDexieSignalQuery } from "solid-dexie"
-import { A, useParams } from "@solidjs/router"
+import db from "../../helper/db"
+import { createEffect, createResource, createSignal, For, onMount } from "solid-js"
+import { A, useNavigate, useParams } from "@solidjs/router"
 import { Channel, Item } from "../../types"
-import { proxyUrl } from "../../consts"
+import { deleteChannel, fetchChannel, getChannel } from "../../services/channel"
+import { getItemsByChannel } from "../../services/items"
 
 export default function () {
     const params = useParams<{ id: string }>()
+    const navigate = useNavigate()
     const [viewAll, setViewAll] = createSignal(false)
-    const feed = createDexieSignalQuery<Channel>(() => db.table('feeds').get(Number(params.id)))
-    const [items, { refetch: refetchItems, mutate: mutateItems }] = createResource<Item[]>(() => {
-        return db.table('items')
-            .where({ feedId: Number(params.id) })
-            .toArray().then((arr: Item[]) => 
-                arr
-                    .sort((a, b) => a.title.localeCompare(b.title, 'en', { numeric: true }))
-                    .sort((a, b) => (
-                        new Date(a.lastModified).valueOf() -
-                        new Date(b.lastModified).valueOf()
-                    ))
-            )
-    })
+    const [feed] = createResource<Channel>(() => getChannel(Number(params.id)))
+    const [items, { refetch }] = createResource<Item[]>(() => getItemsByChannel(Number(params.id)))
 
     function markAsRead(item: Item) {
         db.transaction('rw', db.table('items'), () => {
@@ -35,40 +25,35 @@ export default function () {
         })
     }
 
-    async function fetchFeed() {
-        const resp = await fetch(proxyUrl + feed()!.url)
-        const data = await resp.json()
-        let itemsNew: Item[] = [];
-        data.items.forEach((item: Item) => {
-            const index = items()!.findIndex(v => v.link === item.link)
-            if (index <= -1) {
-                itemsNew.push({
-                    ...item,
-                    feedId: Number(params.id),
-                    read: 0,
-                    saved: 0,
-                })
-            }
-        })
-
-        await db.transaction('rw', db.table('items'),
-            () => db.table('items').bulkAdd(itemsNew)
-        )
-
-        refetchItems()
+    async function handlerFetchChannel() {
+        await fetchChannel(feed()!.id, items()!)
+        refetch()
+        alert('Done')
     }
-    
+
+    async function handlerDeleteChannel() {
+        const confirmed = confirm(`Delete "${feed()!.title}" feed?`)
+        if (confirmed) {
+            await deleteChannel(feed()!.id)
+            navigate('/feed')
+        }
+    }
+
     createEffect(() => {
-        // load saved preferences
+        // load preferences
         setViewAll(!!feed()?.view_all)
     })
 
     return (
         <>
+            <div style={{ margin: '0 0 -1.5em 0', "text-align": 'right' }}>
+                &nbsp;
+                [<a onClick={handlerFetchChannel}>Update</a>]
+                [<a onClick={handlerDeleteChannel}>Delete</a>]
+            </div>
             <h2>{feed()?.title}</h2>
-            <button onClick={fetchFeed} style={{ "margin-right": '1em' }}>Fetch</button>
-            View: 
-            {viewAll() ? <strong>All</strong> : <A href="" onClick={toggleViewAll}>All</A>} | 
+            View:&nbsp;
+            {viewAll() ? <strong>All</strong> : <A href="" onClick={toggleViewAll}>All</A>} |
             {!viewAll() ? <strong>Unread</strong> : <A href="" onClick={toggleViewAll}>Unread</A>}
 
             <ul class="items">
@@ -85,6 +70,7 @@ export default function () {
                                     {item.title}
                                 </A>
                                 <a class="link" href={item.link}>({new URL(item.link).origin})</a>
+                                <br />
                                 <span class="meta">
                                     <span class="date">{item.lastModified}</span>
                                 </span>

@@ -1,6 +1,6 @@
 import { A } from "@solidjs/router";
 import { createDexieSignalQuery } from "solid-dexie";
-import db from "../db";
+import db from "../helper/db";
 
 export default function () {
     const countUnreadItems = createDexieSignalQuery(() => db.table('items').where({ read: 0 }).count())
