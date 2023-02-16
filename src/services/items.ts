@@ -17,6 +17,18 @@ export async function getItem(id: number) {
     })
 }
 
+export async function readItem(id: number) {
+    await db.transaction('rw', TABLE, () => {
+        TABLE.where({ id }).modify({ read: 1 })
+    })
+}
+
+export async function readAllItems(feedId: number) {
+    await db.transaction('rw', TABLE, () => {
+        TABLE.where({ feedId }).modify({ read: 1 })
+    })
+}
+
 export async function getItemsByChannel(feedId: number) {
     return TABLE.where({ feedId }).toArray().then((arr: Item[]) =>
         arr

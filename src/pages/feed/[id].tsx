@@ -1,9 +1,9 @@
 import db from "../../helper/db"
-import { createEffect, createResource, createSignal, For, onMount, Show } from "solid-js"
+import { createEffect, createResource, createSignal, For, Show } from "solid-js"
 import { A, useNavigate, useParams } from "@solidjs/router"
 import { Channel, Item } from "../../types"
-import { deleteChannel, fetchChannel, getChannel } from "../../services/channel"
-import { getItemsByChannel } from "../../services/items"
+import { deleteChannel, fetchChannel, getChannel, updateChannel } from "../../services/channel"
+import { getItemsByChannel, readAllItems, readItem } from "../../services/items"
 
 export default function () {
     const params = useParams<{ id: string }>()
@@ -14,16 +14,23 @@ export default function () {
     const [items, { refetch }] = createResource<Item[]>(() => getItemsByChannel(Number(params.id)))
 
     function markAsRead(item: Item) {
-        db.transaction('rw', db.table('items'), () => {
-            db.table('items').where({ id: item.id }).modify({ read: 1 })
-        })
+        readItem(item.id)
+        refetch()
+    }
+
+    async function markAllAsRead() {
+        await readAllItems(feed()!.id)
+        refetch()
+    }
+
+    function countUnread() {
+        return items()?.filter(item => !item.read).length
     }
 
     function toggleViewAll() {
         setViewAll(v => !v)
-        db.transaction('rw', db.table('feeds'), () => {
-            db.table('feeds').where({ id: feed()?.id }).modify({ view_all: Number(viewAll()) })
-        })
+        const where = { id: feed()!.id }
+        updateChannel(where, { view_all: Number(viewAll()) })
     }
 
     async function handlerFetchChannel() {
@@ -57,36 +64,41 @@ export default function () {
                 [<a onClick={handlerFetchChannel}>Update</a>]
                 [<a onClick={handlerDeleteChannel}>Delete</a>]
             </div>
-            <h2>{feed()?.title} <a href={feed()?.link} title="Go to website">&#128279;</a></h2>
-            <div style={{ margin: '-.5em 0 0 0' }}>{feed()?.url}</div>
-            <br />
-            View:&nbsp;
-            {viewAll() ? <strong>All</strong> : <A href="" onClick={toggleViewAll}>All</A>} |&nbsp;
-            {!viewAll() ? <strong>Unread</strong> : <A href="" onClick={toggleViewAll}>Unread</A>}
+            <Show when={feed()}>
+                <h2>{feed()!.title} <a href={feed()!.link} title="Go to website">&#128279;</a></h2>
+                <div style={{ margin: '-.5em 0 0 0' }}>{feed()!.url}</div>
+                <br />
+                View:&nbsp;
+                {viewAll() ? <strong>All</strong> : <A href="" onClick={toggleViewAll}>All</A>} |&nbsp;
+                {!viewAll() ? <strong>Unread</strong> : <A href="" onClick={toggleViewAll}>Unread</A>}
+                <Show when={!viewAll() && countUnread()! > 0}>
+                &nbsp;- [<a onClick={markAllAsRead}>Mark all as read</a>]
+                </Show>
 
-            <ul class="items">
-                <For each={items()?.reverse()}>
-                    {(item) => (
-                        <li class="item" classList={{ hidden: !viewAll() && !!item.read }}>
-                            <span>&rsaquo;</span>
-                            <div>
-                                <A
-                                    href={feed()?.read_external ? item.link : `/item/${item.id}`} onClick={() => markAsRead(item)}
-                                    class="title"
-                                    classList={{ readed: !!item.read }}
-                                >
-                                    {item.title}
-                                </A>
-                                <a class="link" href={item.link}>({new URL(item.link).origin})</a>
-                                <br />
-                                <span class="meta">
-                                    <span class="date">{item.lastModified}</span>
-                                </span>
-                            </div>
-                        </li>
-                    )}
-                </For>
-            </ul>
+                <ul class="items">
+                    <For each={items()?.reverse()}>
+                        {(item) => (
+                            <li class="item" classList={{ hidden: !viewAll() && !!item.read }}>
+                                <span>&rsaquo;</span>
+                                <div>
+                                    <A
+                                        href={feed()!.read_external ? item.link : `/item/${item.id}`} onClick={() => markAsRead(item)}
+                                        class="title"
+                                        classList={{ readed: !!item.read }}
+                                    >
+                                        {item.title}
+                                    </A>
+                                    <a class="link" href={item.link}>({new URL(item.link).origin})</a>
+                                    <br />
+                                    <span class="meta">
+                                        <span class="date">{item.lastModified}</span>
+                                    </span>
+                                </div>
+                            </li>
+                        )}
+                    </For>
+                </ul>
+            </Show>
         </>
     )
 }
