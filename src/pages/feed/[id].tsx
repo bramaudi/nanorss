@@ -4,6 +4,7 @@ import { A, useNavigate, useParams } from "@solidjs/router"
 import { Channel, Item } from "../../types"
 import { deleteChannel, fetchChannel, getChannel, updateChannel } from "../../services/channel"
 import { getItemsByChannel, readAllItems, readItem } from "../../services/items"
+import { formatDate } from "../../helper/util"
 
 export default function () {
     const params = useParams<{ id: string }>()
@@ -91,7 +92,7 @@ export default function () {
                                     <a class="link" href={item.link}>({new URL(item.link).origin})</a>
                                     <br />
                                     <span class="meta">
-                                        <span class="date">{item.lastModified}</span>
+                                        <span class="date">{formatDate(item.lastModified)}</span>
                                     </span>
                                 </div>
                             </li>
