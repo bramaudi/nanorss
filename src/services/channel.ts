@@ -28,7 +28,7 @@ export async function insertChannel(channel: Channel, items: Item[]) {
     if (!existingFeed) {
         channel = { ...channel, read_external: 0 }
         const lastInsertId = await db.transaction('rw', TABLE, () => TABLE.add(channel) ).then(id => Number(id))
-        await insertItems(lastInsertId, items)
+        await insertItems(lastInsertId, items.map(item => ({...item, read: 0, saved: 0})))
     }
     else {
         // Rename existing feed

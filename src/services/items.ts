@@ -50,8 +50,6 @@ export async function insertItems(feedId: number, items: Item[]) {
     const filtered = items.map(item => ({
         ...item,
         feedId,
-        read: 0,
-        saved: 0,
     })).reverse() // reverse so latest item get higher DB id
 
     await db.transaction('rw', TABLE, () => {
