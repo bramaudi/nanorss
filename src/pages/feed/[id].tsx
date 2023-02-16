@@ -1,5 +1,5 @@
 import db from "../../helper/db"
-import { createEffect, createResource, createSignal, For, onMount } from "solid-js"
+import { createEffect, createResource, createSignal, For, onMount, Show } from "solid-js"
 import { A, useNavigate, useParams } from "@solidjs/router"
 import { Channel, Item } from "../../types"
 import { deleteChannel, fetchChannel, getChannel } from "../../services/channel"
@@ -9,6 +9,7 @@ export default function () {
     const params = useParams<{ id: string }>()
     const navigate = useNavigate()
     const [viewAll, setViewAll] = createSignal(false)
+    const [loading, setLoading] = createSignal('')
     const [feed] = createResource<Channel>(() => getChannel(Number(params.id)))
     const [items, { refetch }] = createResource<Item[]>(() => getItemsByChannel(Number(params.id)))
 
@@ -26,9 +27,13 @@ export default function () {
     }
 
     async function handlerFetchChannel() {
+        setLoading('Fetching ...')
         await fetchChannel(feed()!.id, items()!)
         refetch()
-        alert('Done')
+        setLoading('Complete!')
+        setTimeout(() => {
+            setLoading('')
+        }, 1000);
     }
 
     async function handlerDeleteChannel() {
@@ -48,12 +53,15 @@ export default function () {
         <>
             <div style={{ margin: '0 0 -1.5em 0', "text-align": 'right' }}>
                 &nbsp;
+                <Show when={loading().length}>{loading()}&nbsp;</Show>
                 [<a onClick={handlerFetchChannel}>Update</a>]
                 [<a onClick={handlerDeleteChannel}>Delete</a>]
             </div>
-            <h2>{feed()?.title}</h2>
+            <h2>{feed()?.title} <a href={feed()?.link} title="Go to website">&#128279;</a></h2>
+            <div style={{ margin: '-.5em 0 0 0' }}>{feed()?.url}</div>
+            <br />
             View:&nbsp;
-            {viewAll() ? <strong>All</strong> : <A href="" onClick={toggleViewAll}>All</A>} |
+            {viewAll() ? <strong>All</strong> : <A href="" onClick={toggleViewAll}>All</A>} |&nbsp;
             {!viewAll() ? <strong>Unread</strong> : <A href="" onClick={toggleViewAll}>Unread</A>}
 
             <ul class="items">
