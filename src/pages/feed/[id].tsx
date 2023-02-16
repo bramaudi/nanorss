@@ -24,7 +24,11 @@ export default function () {
         refetch()
     }
 
-    function countUnread() {
+    function countAllItems() {
+        return items()?.length
+    }
+    
+    function countUnreadItems() {
         return items()?.filter(item => !item.read).length
     }
 
@@ -70,9 +74,9 @@ export default function () {
                 <div style={{ margin: '-.5em 0 0 0' }}>{feed()!.url}</div>
                 <br />
                 View:&nbsp;
-                {viewAll() ? <strong>All</strong> : <A href="" onClick={toggleViewAll}>All</A>} |&nbsp;
-                {!viewAll() ? <strong>Unread</strong> : <A href="" onClick={toggleViewAll}>Unread</A>}
-                <Show when={!viewAll() && countUnread()! > 0}>
+                {viewAll() ? <strong>All ({countAllItems})</strong> : <A href="" onClick={toggleViewAll}>All ({countAllItems})</A>} |&nbsp;
+                {!viewAll() ? <strong>Unread ({countUnreadItems})</strong> : <A href="" onClick={toggleViewAll}>Unread ({countUnreadItems})</A>}
+                <Show when={!viewAll() && countUnreadItems()! > 0}>
                 &nbsp;- [<a onClick={markAllAsRead}>Mark all as read</a>]
                 </Show>
 
