@@ -77,12 +77,15 @@ export default function () {
                 <div style={{ margin: '-.5em 0 0 0' }}>{feed()!.url}</div>
                 <br />
                 View:&nbsp;
-                {viewAll() ? <strong>All ({countAllItems})</strong> : <A href="" onClick={toggleViewAll}>All ({countAllItems})</A>} |&nbsp;
-                {!viewAll() ? <strong>Unread ({countUnreadItems})</strong> : <A href="" onClick={toggleViewAll}>Unread ({countUnreadItems})</A>}
+                {viewAll() ? <strong>All ({countAllItems()})</strong> : <A href="" onClick={toggleViewAll}>All ({countAllItems()})</A>} |&nbsp;
+                {!viewAll() ? <strong>Unread ({countUnreadItems()})</strong> : <A href="" onClick={toggleViewAll}>Unread ({countUnreadItems()})</A>}
                 <Show when={!viewAll() && countUnreadItems()! > 0}>
                 &nbsp;- [<a onClick={markAllAsRead}>Mark all as read</a>]
                 </Show>
 
+                <Show when={(viewAll() && !countAllItems()) || (!viewAll() && !countUnreadItems())}>
+                    <div style={{ margin: '1em 0'}}>Empty :(</div>
+                </Show>
                 <ul class="items">
                     <For each={items()?.reverse()}>
                         {(item) => (

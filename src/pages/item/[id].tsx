@@ -28,7 +28,10 @@ export default function () {
                     <Show when={item()!.read}>[<a onClick={() => markAsUnread(item()!.id)}>Mark as unread</a>]</Show>
                 </div>
                 <article>
-                    <h1>{item()!.title} <a href={item()?.link} title="Original website">&#128279;</a></h1>
+                    <h1>
+                        {item()!.title}&nbsp;
+                        <small><a href={item()?.link} title="Original website">&#128279;</a></small>
+                    </h1>
                     <span class="meta">
                         {item()!.author && `by ${item()!.author?.name}, `}
                         {formatDate(item()!.lastModified)}
