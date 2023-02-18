@@ -70,7 +70,10 @@ export default function () {
                 [<a onClick={handlerDeleteChannel}>Delete</a>]
             </div>
             <Show when={feed()}>
-                <h2>{feed()!.title} <a href={feed()!.link} title="Go to website">&#128279;</a></h2>
+                <h2>
+                    {feed()!.title}
+                    &nbsp;<small><a href={feed()!.link} title="Go to website">&#128279;</a></small>
+                </h2>
                 <div style={{ margin: '-.5em 0 0 0' }}>{feed()!.url}</div>
                 <br />
                 View:&nbsp;
