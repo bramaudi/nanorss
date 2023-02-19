@@ -1,4 +1,4 @@
-import { createResource, createSignal, Show } from "solid-js"
+import { createSignal, Show } from "solid-js"
 import { downloadChannel, insertChannel } from "../services/channel"
 import { JSONResponse } from "../types"
 
@@ -6,14 +6,14 @@ type Props = {
     onInsert: () => unknown
 }
 export default function AddFeed(props: Props) {
-    const [url, setUrl] = createSignal('https://lukesmith.xyz/index.xml')
+    const [url, setUrl] = createSignal('')
     const [loading, setLoading] = createSignal(false)
     const [json, setJson] = createSignal<JSONResponse>()
 
     async function handlerDownloadChannel(e: SubmitEvent) {
         e.preventDefault()
         setLoading(true)
-        setJson(await downloadChannel(url()))
+        setJson(await downloadChannel(url(), false))
         setLoading(false)
     }
 

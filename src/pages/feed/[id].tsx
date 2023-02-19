@@ -1,8 +1,7 @@
-import db from "../../helper/db"
 import { createEffect, createResource, createSignal, For, Show } from "solid-js"
 import { A, useNavigate, useParams } from "@solidjs/router"
 import { Channel, Item } from "../../types"
-import { deleteChannel, fetchChannel, getChannel, updateChannel } from "../../services/channel"
+import { deleteChannel, downloadChannel, fetchChannel, getChannel, updateChannel } from "../../services/channel"
 import { getItemsByChannel, readAllItems, readItem } from "../../services/items"
 import { formatDate } from "../../helper/util"
 
@@ -38,11 +37,17 @@ export default function () {
         updateChannel(where, { view_all: Number(viewAll()) })
     }
 
-    async function handlerFetchChannel() {
-        setLoading('Fetching ...')
-        await fetchChannel(feed()!.id, items()!)
+    async function handlerSyncChannel() {
+        setLoading('Checking ...')
+        const json = await downloadChannel(feed()!.url)
+        const dateNew = new Date(json.lastModified!.date).valueOf()
+        const dateOld = new Date(feed()!.lastModified.date).valueOf()
+        if (dateNew > dateOld) {
+            setLoading('Updating ...')
+            await fetchChannel(feed()!.id, items()!)
+        }
         refetch()
-        setLoading('Complete!')
+        setLoading('Done! ')
         setTimeout(() => {
             setLoading('')
         }, 1000);
@@ -66,7 +71,7 @@ export default function () {
             <div style={{ margin: '0 0 -1.5em 0', "text-align": 'right' }}>
                 &nbsp;
                 <Show when={loading().length}>{loading()}&nbsp;</Show>
-                [<a onClick={handlerFetchChannel}>Update</a>]
+                [<a onClick={handlerSyncChannel}>Sync</a>]
                 [<a onClick={handlerDeleteChannel}>Delete</a>]
             </div>
             <Show when={feed()}>
@@ -84,7 +89,7 @@ export default function () {
                 </Show>
 
                 <Show when={(viewAll() && !countAllItems()) || (!viewAll() && !countUnreadItems())}>
-                    <div style={{ margin: '1em 0'}}>Empty :(</div>
+                    <div style={{ margin: '1em 0'}}>&lt;empty&gt;</div>
                 </Show>
                 <ul class="items">
                     <For each={items()?.reverse()}>

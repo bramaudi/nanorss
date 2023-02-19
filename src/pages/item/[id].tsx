@@ -1,4 +1,3 @@
-import db from "../../helper/db"
 import { useParams } from "@solidjs/router"
 import { createResource, Show } from "solid-js"
 import { Item } from "../../types"

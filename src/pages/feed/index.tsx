@@ -1,21 +1,13 @@
-import { createResource, For } from "solid-js"
+import { createResource, createSignal, For, Show } from "solid-js"
 import { A } from "@solidjs/router"
 import AddFeed from "../../components/AddFeed"
 import { Channel } from "../../types"
-import { deleteChannel, getChannels } from "../../services/channel"
+import { downloadChannel, getChannels } from "../../services/channel"
 import { getItemsCount, getItemsUnreadCount } from "../../services/items"
 
 export default function () {
+    const [loading, setLoading] = createSignal('')
     const [channels, { refetch }] = createResource<Channel[]>(() => getChannels())
-    
-    async function feedsDelete(feed: Channel) {
-        const { id, title } = feed
-        const confirmed = confirm(`Delete feed "${title}"?`)
-        if (confirmed) {
-            await deleteChannel(id)
-            refetch()
-        }
-    }
 
     function countItems(feedId: number) {
         const unread = createResource(() => getItemsUnreadCount(feedId))[0]
@@ -23,9 +15,28 @@ export default function () {
         return {unread, all}
     }
     
+    async function handlerSyncChannels() {
+        let done = 0
+        setLoading(`Sync (${done}/${channels()?.length}) ...`)
+        for (const url of channels()!.map(c => c.url)) {
+            await downloadChannel(url).then(() => {
+                done++
+                setLoading(`Sync (${done}/${channels()?.length}) ...`)
+            })
+        }
+        setTimeout(() => {
+            setLoading('')
+        }, 1000);
+    }
+
     return (
         <>
             <AddFeed onInsert={refetch}/>
+            <div style={{ margin: '0 0 -1.5em 0', "text-align": 'right' }}>
+                &nbsp;
+                <Show when={loading().length}>{loading()}&nbsp;</Show>
+                [<a onClick={handlerSyncChannels}>Sync</a>]
+            </div>
             <ul class="items">
                 <For each={channels()?.reverse()}>
                     {feed => (

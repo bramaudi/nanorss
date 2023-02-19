@@ -1,6 +1,6 @@
 import db from "../helper/db";
 import { Channel, Item, JSONResponse } from "../types";
-import { deleteItems, getItemsCount, insertItems } from "./items";
+import { deleteItems, insertItems } from "./items";
 
 const PROXY = 'https://rss2json.vercel.app/api?url='
 const TABLE = db.table('feeds')
@@ -17,7 +17,8 @@ export async function getChannels() {
     return await TABLE.toArray()
 }
 
-export async function downloadChannel(url: string) {
+export async function downloadChannel(url: string, check = true) {
+    url = check ? `${url}&check=true` : url
     const json: JSONResponse = await fetch(PROXY + url).then(r => r.json())
     if (json.status === 'error') alert(json.message)
     return json
@@ -52,7 +53,7 @@ export async function deleteChannel(feedId: number) {
 
 export async function fetchChannel(feedId: number, prevItems: Item[]) {
     const feed = await getChannel(feedId)
-    const json: JSONResponse = await fetch(PROXY + feed.url).then(r => r.json())
+    const json = await downloadChannel(feed.url, false)
 
     const updatedItems: Item[] = prevItems;
     json.items!.forEach((item: Item) => {
