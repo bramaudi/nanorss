@@ -40,7 +40,7 @@ export default function () {
     async function handlerSyncChannel() {
         setLoading('Checking ...')
         const json = await downloadChannel(feed()!.url)
-        const dateNew = new Date(json.lastModified!.date).valueOf()
+        const dateNew = new Date(json.channel!.lastModified!.date).valueOf()
         const dateOld = new Date(feed()!.lastModified.date).valueOf()
         if (dateNew > dateOld) {
             setLoading('Updating ...')

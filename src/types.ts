@@ -1,9 +1,6 @@
 export interface JSONResponse {
     status: "success" | "error"
     message: string | null
-    lastModified?: {
-        date: string
-    }
     channel?: Channel
     items?: Item[]
 }
