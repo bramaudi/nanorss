@@ -44,7 +44,10 @@ export default function () {
         const dateOld = new Date(feed()!.lastModified.date).valueOf()
         if (dateNew > dateOld) {
             setLoading('Updating ...')
-            await fetchChannel(feed()!.id, items()!)
+            // Throttle request to api
+            setTimeout(async () => {
+                await fetchChannel(feed()!.id, items()!)
+            }, 300);
         }
         refetch()
         setLoading('Done! ')

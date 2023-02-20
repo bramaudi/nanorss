@@ -2,8 +2,8 @@ import { createResource, createSignal, For, Show } from "solid-js"
 import { A } from "@solidjs/router"
 import AddFeed from "../../components/AddFeed"
 import { Channel } from "../../types"
-import { downloadChannel, getChannels } from "../../services/channel"
-import { getItemsCount, getItemsUnreadCount } from "../../services/items"
+import { downloadChannel, fetchChannel, getChannels } from "../../services/channel"
+import { getItemsByChannel, getItemsCount, getItemsUnreadCount } from "../../services/items"
 
 export default function () {
     const [loading, setLoading] = createSignal('')
@@ -18,14 +18,25 @@ export default function () {
     async function handlerSyncChannels() {
         let done = 0
         setLoading(`Sync (${done}/${channels()?.length}) ...`)
-        for (const url of channels()!.map(c => c.url)) {
-            await downloadChannel(url).then(() => {
-                done++
-                setLoading(`Sync (${done}/${channels()?.length}) ...`)
-            })
+        for (const channel of channels()!) {
+            const json = await downloadChannel(channel.url)
+            const items = await getItemsByChannel(channel.id)
+            const dateNew = new Date(json.channel!.lastModified!.date).valueOf()
+            const dateOld = new Date(channel.lastModified.date).valueOf()
+            if (dateNew > dateOld) {
+                console.log(channel.title, `${dateNew} > ${dateOld}`);
+                
+                // Throttle request to api
+                setTimeout(async () => {
+                    await fetchChannel(channel.id, items)
+                }, 300);
+            }
+            done++
+            setLoading(`Sync (${done}/${channels()?.length}) ...`)
         }
         setTimeout(() => {
             setLoading('')
+            refetch()
         }, 1000);
     }
 

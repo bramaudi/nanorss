@@ -77,6 +77,7 @@ export async function fetchChannel(feedId: number, prevItems: Item[]) {
         }
     })
 
+    await updateChannel({ id: feedId }, json.channel!)
     await deleteItems(feedId)
     await insertItems(feedId, updatedItems)
 }
