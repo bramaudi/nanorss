@@ -4,6 +4,7 @@ import AddFeed from "../../components/AddFeed"
 import { Channel } from "../../types"
 import { downloadChannel, fetchChannel, getChannels } from "../../services/channel"
 import { getItemsByChannel, getItemsCount, getItemsUnreadCount } from "../../services/items"
+import { sleep } from "../../helper/utils"
 
 export default function () {
     const [loading, setLoading] = createSignal('')
@@ -24,20 +25,15 @@ export default function () {
             const dateNew = new Date(json.channel!.lastModified!.date).valueOf()
             const dateOld = new Date(channel.lastModified.date).valueOf()
             if (dateNew > dateOld) {
-                console.log(channel.title, `${dateNew} > ${dateOld}`);
-                
-                // Throttle request to api
-                setTimeout(async () => {
-                    await fetchChannel(channel.id, items)
-                }, 300);
+                await sleep(300) // Throttle api call
+                await fetchChannel(channel.id, items)
             }
             done++
             setLoading(`Sync (${done}/${channels()?.length}) ...`)
         }
-        setTimeout(() => {
-            setLoading('')
-            refetch()
-        }, 1000);
+        await sleep(1000)
+        refetch()
+        setLoading('')
     }
 
     return (

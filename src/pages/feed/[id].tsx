@@ -3,7 +3,7 @@ import { A, useNavigate, useParams } from "@solidjs/router"
 import { Channel, Item } from "../../types"
 import { deleteChannel, downloadChannel, fetchChannel, getChannel, updateChannel } from "../../services/channel"
 import { getItemsByChannel, readAllItems, readItem } from "../../services/items"
-import { formatDate } from "../../helper/util"
+import { formatDate, sleep } from "../../helper/utils"
 
 export default function () {
     const params = useParams<{ id: string }>()
@@ -43,17 +43,14 @@ export default function () {
         const dateNew = new Date(json.channel!.lastModified!.date).valueOf()
         const dateOld = new Date(feed()!.lastModified.date).valueOf()
         if (dateNew > dateOld) {
+            await sleep(300) // Throttle api call
             setLoading('Updating ...')
-            // Throttle request to api
-            setTimeout(async () => {
-                await fetchChannel(feed()!.id, items()!)
-            }, 300);
+            await fetchChannel(feed()!.id, items()!)
+            setLoading('New content!')
         }
-        setLoading('Done! ')
-        setTimeout(() => {
-            refetch()
-            setLoading('')
-        }, 1000);
+        await sleep(2000)
+        refetch()
+        setLoading('')
     }
 
     async function handlerDeleteChannel() {

@@ -11,3 +11,7 @@ export function formatDate(date: string) {
     }
     return new Intl.DateTimeFormat('en', options).format(datetime)
 }
+
+export function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}

@@ -3,7 +3,7 @@ import { A } from "@solidjs/router"
 import { Channel, Item } from "../../types"
 import { getChannels } from "../../services/channel"
 import { getItems, readItem } from "../../services/items"
-import { formatDate } from "../../helper/util"
+import { formatDate } from "../../helper/utils"
 
 export default function () {
     const [channels] = createResource<Channel[]>(() => getChannels())

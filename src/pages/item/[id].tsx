@@ -2,7 +2,7 @@ import { useParams } from "@solidjs/router"
 import { createResource, Show } from "solid-js"
 import { Item } from "../../types"
 import { getItem, updateItem } from "../../services/items"
-import { formatDate } from "../../helper/util"
+import { formatDate } from "../../helper/utils"
 
 export default function () {
     const { id } = useParams()
