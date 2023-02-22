@@ -3,6 +3,15 @@ import { Item } from "../types"
 
 const TABLE = db.table('items')
 
+function sortItemsByDate(items: Item[]) {
+    return items
+        .sort((a, b) => a.title.localeCompare(b.title, 'en', { numeric: true }))
+        .sort((a, b) => (
+            new Date(a.lastModified).valueOf() -
+            new Date(b.lastModified).valueOf()
+        ))
+}
+
 export async function getItemsCount(feedId: number) {
     return await TABLE.where({ feedId }).count()
 }
@@ -30,8 +39,7 @@ export async function readAllItems(feedId: number) {
 }
 
 export async function getItemsByChannel(feedId: number) {
-    return TABLE.where({ feedId }).toArray().then(
-    )
+    return TABLE.where({ feedId }).toArray().then(sortItemsByDate)
 }
 
 export async function getItems(where: object, offset: number, limit: number) {
