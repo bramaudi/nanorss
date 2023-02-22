@@ -35,7 +35,9 @@ export async function getItemsByChannel(feedId: number) {
 }
 
 export async function getItems(where: object, offset: number, limit: number) {
-    return TABLE.where(where).offset(offset).limit(limit).toArray()
+    let query = TABLE.where(where).offset(offset)
+    if (limit) query = query.limit(limit)
+    return query.toArray()
 }
 
 export async function updateItem(where: object, data: object) {

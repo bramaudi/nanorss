@@ -7,7 +7,7 @@ import { formatDate } from "../../helper/util"
 
 export default function () {
     const [channels] = createResource<Channel[]>(() => getChannels())
-    const [items, { refetch }] = createResource<Item[]>(() => getItems({ read: 0 }, 0, 10))
+    const [items, { refetch }] = createResource<Item[]>(() => getItems({ read: 0 }, 0, 0))
 
     function markAsRead(item: Item) {
         readItem(item.id)
@@ -44,7 +44,7 @@ export default function () {
                                     <a class="link" href={item.link}>({new URL(item.link).origin})</a>
                                     <br />
                                     <span class="meta">
-                                        <span class="date">{formatDate(item.lastModified)}</span>
+                                        {findChannel(item.feedId)?.title} - <span class="date">{formatDate(item.lastModified)}</span>
                                     </span>
                                 </div>
                             </li>
