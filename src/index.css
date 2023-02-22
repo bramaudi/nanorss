@@ -72,6 +72,7 @@ nav a.active {
 }
 
 article .meta {
+    margin-top: -1.5em;
     color: #aaa;
 }
 

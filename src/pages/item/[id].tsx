@@ -2,7 +2,7 @@ import { useParams } from "@solidjs/router"
 import { createResource, Show } from "solid-js"
 import { Item } from "../../types"
 import { getItem, updateItem } from "../../services/items"
-import { formatDate } from "../../helper/utils"
+import { formatDate, readingTime } from "../../helper/utils"
 
 export default function () {
     const { id } = useParams()
@@ -41,10 +41,12 @@ export default function () {
                         class="title"
                         innerHTML={`${item()!.title} <small><a href="${item()?.link}" title="Original website">&#128279;</a></small>`}>
                     </h1>
-                    <span class="meta">
+                    <div class="meta">
                         {item()!.author && `by ${item()!.author?.name}, `}
                         {formatDate(item()!.lastModified)}
-                    </span>
+                        <br />
+                        <small>{readingTime(showContent(item()!))} minutes read</small>
+                    </div>
                     <div innerHTML={showContent(item()!)}></div>
                 </article>
             </Show>
