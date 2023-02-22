@@ -82,7 +82,7 @@ export default function () {
                     {feed()!.title}
                     &nbsp;<small><a href={feed()!.link} title="Go to website">&#128279;</a></small>
                 </h2>
-                <div style={{ margin: '-.5em 0 0 0' }}>{feed()!.url}</div>
+                <div style={{ margin: '-1.5em 0 0 0' }}>{feed()!.url}</div>
                 <br />
                 View:&nbsp;
                 {viewAll() ? <strong>All ({countAllItems()})</strong> : <A href="" onClick={toggleViewAll}>All ({countAllItems()})</A>} |&nbsp;

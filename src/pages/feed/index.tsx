@@ -55,7 +55,7 @@ export default function () {
                             <span>&rsaquo;</span>
                             <div>
                                 <A class="title" href={`/feed/${feed.id}`}>
-                                    <strong>{feed.title}</strong>
+                                    {feed.title}
                                 </A>
                                 <span class="meta">
                                     <span class="date">({countItems(feed.id).unread} / {countItems(feed.id).all})</span>

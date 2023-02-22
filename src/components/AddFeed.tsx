@@ -48,8 +48,9 @@ export default function AddFeed(props: Props) {
             <Show when={loading()}>Fetching ...</Show>
             <Show when={json()?.channel?.title}>
                 <form onSubmit={handlerInsertChannel}>
-                    <label for="feed-name">Name</label>
-                    <input id="feed-name" type="text"
+                    <input
+                        style={{ margin: '1em 0 0', display: 'block' }}
+                        type="text"
                         value={json()!.channel?.title}
                         onInput={modifyFeedName}
                     />
