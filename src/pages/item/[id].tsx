@@ -19,6 +19,16 @@ export default function () {
         return content?.replaceAll(/tab:/g, '')
     }
 
+    function showContent(item: Item) {
+        if (item.content) {
+            return parseContent(item.content)
+        }
+
+        return `${parseContent(item.summary) || ''}
+            <br/><br/>
+            [<a href="${item.link}">Read full article</a>]`
+    }
+
     return (
         <>
             <Show when={item()}>
@@ -33,7 +43,7 @@ export default function () {
                         {item()!.author && `by ${item()!.author?.name}, `}
                         {formatDate(item()!.lastModified)}
                     </span>
-                    <div innerHTML={parseContent(item()?.content ? item()?.content : item()?.summary)}></div>
+                    <div innerHTML={showContent(item()!)}></div>
                 </article>
             </Show>
         </>
