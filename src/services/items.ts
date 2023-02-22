@@ -30,14 +30,12 @@ export async function readAllItems(feedId: number) {
 }
 
 export async function getItemsByChannel(feedId: number) {
-    return TABLE.where({ feedId }).toArray().then((arr: Item[]) =>
-        arr
-            .sort((a, b) => a.title.localeCompare(b.title, 'en', { numeric: true }))
-            .sort((a, b) => (
-                new Date(a.lastModified).valueOf() -
-                new Date(b.lastModified).valueOf()
-            ))
+    return TABLE.where({ feedId }).toArray().then(
     )
+}
+
+export async function getItems(where: object, offset: number, limit: number) {
+    return TABLE.where(where).offset(offset).limit(limit).toArray()
 }
 
 export async function updateItem(where: object, data: object) {
