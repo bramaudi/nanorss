@@ -38,8 +38,8 @@ export default function () {
                                         href={findChannel(item.feedId)!.read_external ? item.link : `/item/${item.id}`} onClick={() => markAsRead(item)}
                                         class="title"
                                         classList={{ readed: !!item.read }}
+                                        innerHTML={item.title}
                                     >
-                                        {item.title}
                                     </A>
                                     <a class="link" href={item.link}>({new URL(item.link).origin})</a>
                                     <br />
