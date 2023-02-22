@@ -20,6 +20,11 @@ export default function () {
                 which is open source.
             </p>
 
+            <blockquote>
+                <strong>Warning</strong>: Still under development, some functionality may break without any caution,
+                and lacks of many basic features.
+            </blockquote>
+
             <a href="https://github.com/bramaudi/nanorss">Source code</a> | 
             <a href="https://github.com/bramaudi/rss2json">API</a>
             <footer style="padding:25px 0;">
