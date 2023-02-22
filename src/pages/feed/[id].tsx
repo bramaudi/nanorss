@@ -49,9 +49,9 @@ export default function () {
                 await fetchChannel(feed()!.id, items()!)
             }, 300);
         }
-        refetch()
         setLoading('Done! ')
         setTimeout(() => {
+            refetch()
             setLoading('')
         }, 1000);
     }
