@@ -1,25 +1,25 @@
 import { createResource, For, Show } from "solid-js"
 import { A } from "@solidjs/router"
-import { Channel, Item } from "../../types"
-import { getChannels } from "../../services/channel"
+import { Feed, Item } from "../../types"
+import { getFeeds } from "../../services/feed"
 import { getItems, readItem } from "../../services/items"
 import { formatDate } from "../../helper/utils"
 
 export default function () {
-    const [channels] = createResource<Channel[]>(() => getChannels())
-    const [items, { refetch }] = createResource<Item[]>(() => getItems({ read: 0 }, 0, 0))
+    const [feeds] = createResource<Feed[]>(() => getFeeds())
+    const [items, { refetch }] = createResource<Item[]>(() => getItems({ _read: 0 }, 0, 0))
 
     function markAsRead(item: Item) {
-        readItem(item.id)
+        readItem(item._id)
         refetch()
     }
     
     function countUnreadItems() {
-        return items()?.filter(item => !item.read).length
+        return items()?.filter(item => !item._read).length
     }
 
-    function findChannel(feedId: number) {
-        return channels()?.filter(c => c.id === feedId)[0]
+    function selectFeed(feedId: number) {
+        return feeds()?.filter(c => c._id === feedId)[0]
     }
 
     return (
@@ -35,16 +35,16 @@ export default function () {
                                 <span>&rsaquo;</span>
                                 <div>
                                     <A
-                                        href={findChannel(item.feedId)!.read_external ? item.link : `/item/${item.id}`} onClick={() => markAsRead(item)}
+                                        href={`/item/${item._id}`} onClick={() => markAsRead(item)}
                                         class="title"
-                                        classList={{ readed: !!item.read }}
+                                        classList={{ readed: !!item._read }}
                                         innerHTML={item.title}
                                     >
                                     </A>
-                                    <a class="link" href={item.link}>({new URL(item.link).origin})</a>
+                                    <a class="link" href={item.url}>({new URL(item.url).origin})</a>
                                     <br />
                                     <span class="meta">
-                                        {findChannel(item.feedId)?.title} - <span class="date">{formatDate(item.lastModified)}</span>
+                                        {selectFeed(item._feedId)?.title} - <span class="date">{formatDate(item.lastModified)}</span>
                                     </span>
                                 </div>
                             </li>

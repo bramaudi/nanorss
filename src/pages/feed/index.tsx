@@ -1,35 +1,26 @@
 import { createResource, createSignal, For, Show } from "solid-js"
 import { A } from "@solidjs/router"
 import AddFeed from "../../components/AddFeed"
-import { Channel } from "../../types"
-import { downloadChannel, fetchChannel, getChannels } from "../../services/channel"
-import { getItemsByChannel, getItemsCount, getItemsUnreadCount } from "../../services/items"
+import { Feed } from "../../types"
+import { syncFeed, fetchFeed, getFeeds, fetchFeedHash } from "../../services/feed"
+import { getItemsByFeed, getItemsCount, getUnreadItemsCount } from "../../services/items"
 import { sleep } from "../../helper/utils"
 
 export default function () {
     const [loading, setLoading] = createSignal('')
-    const [channels, { refetch }] = createResource<Channel[]>(() => getChannels())
-
-    function countItems(feedId: number) {
-        const unread = createResource(() => getItemsUnreadCount(feedId))[0]
-        const all = createResource(() => getItemsCount(feedId))[0]
-        return {unread, all}
-    }
+    const [feeds, { refetch }] = createResource<Feed[]>(() => getFeeds())
     
-    async function handlerSyncChannels() {
+    async function handlerSyncFeeds() {
         let done = 0
-        setLoading(`Sync (${done}/${channels()?.length}) ...`)
-        for (const channel of channels()!) {
-            const json = await downloadChannel(channel.url)
-            const items = await getItemsByChannel(channel.id)
-            const dateNew = new Date(json.channel!.lastModified!.date).valueOf()
-            const dateOld = new Date(channel.lastModified.date).valueOf()
-            if (dateNew > dateOld) {
+        setLoading(`Sync (${done}/${feeds()?.length}) ...`)
+        for (const feed of feeds()!) {
+            const json = await fetchFeedHash(feed.url)
+            if (json.hash !== feed._hash) {
                 await sleep(300) // Throttle api call
-                await fetchChannel(channel.id, items)
+                await syncFeed(feed._id)
             }
             done++
-            setLoading(`Sync (${done}/${channels()?.length}) ...`)
+            setLoading(`Sync (${done}/${feeds()?.length}) ...`)
         }
         await sleep(1000)
         refetch()
@@ -42,22 +33,22 @@ export default function () {
             <div style={{ margin: '0 0 -1.5em 0', "text-align": 'right' }}>
                 &nbsp;
                 <Show when={loading().length}>{loading()}&nbsp;</Show>
-                [<a onClick={handlerSyncChannels}>Sync</a>]
+                [<a onClick={handlerSyncFeeds}>Sync</a>]
             </div>
             <ul class="items">
-                <For each={channels()?.reverse()}>
+                <For each={feeds()?.reverse()}>
                     {feed => (
                         <li class="item">
                             <span>&rsaquo;</span>
                             <div>
-                                <A class="title" href={`/feed/${feed.id}`}>
+                                <A class="title" href={`/feed/${feed._id}`}>
                                     {feed.title}
                                 </A>
                                 <span class="meta">
-                                    <span class="date">({countItems(feed.id).unread} / {countItems(feed.id).all})</span>
+                                    <span class="date">({getUnreadItemsCount(feed._id)} / {getItemsCount(feed._id)})</span>
                                 </span>
                                 <br />
-                                <a class="link" href={new URL(feed.link).origin}>({new URL(feed.link).host})</a>
+                                <a class="link" href={new URL(feed.url).origin}>({new URL(feed.url).host})</a>
                             </div>
                         </li>
                     )}

@@ -1,38 +1,32 @@
 export interface JSONResponse {
     status: "success" | "error"
     message: string | null
-    channel?: Channel
+    hash: string
+    channel?: Feed
     items?: Item[]
 }
 
-export interface Channel {
-    id: number
+export interface Feed {
+    _id: number
+    _hash: string
     
     url: string
     title: string
-    link: string
-    lastModified: {
-        date: string
-    }
-
     description: string
-    read_external: number
-    view_all: number
 }
 
 export interface Item {
-    id: number
+    _id: number
+    _feedId: number
+    _read: number
+    _saved: number
 
     title: string
-    link: string
+    url: string
     author?: {
         name: string
     }
     summary: string
     content: string
     lastModified: string
-
-    feedId: number
-    read: number
-    saved: number
 }

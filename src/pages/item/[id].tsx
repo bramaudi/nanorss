@@ -6,12 +6,11 @@ import { formatDate, readingTime } from "../../helper/utils"
 
 export default function () {
     const { id } = useParams()
-    const [item, { refetch }] = createResource<Item>(() => getItem(Number(id)))
+    const item = getItem(Number(id))
 
     async function markAsUnread(id: number) {
         const where = { id }
         await updateItem(where, { read: 0 })
-        refetch()
     }
 
     // remove "tab:" prefix on bearblog.dev feed
@@ -26,7 +25,7 @@ export default function () {
 
         return `${parseContent(item.summary) || ''}
             <br/><br/>
-            [<a href="${item.link}">Read full article</a>]`
+            [<a href="${item.url}">Read full article</a>]`
     }
 
     return (
@@ -34,12 +33,12 @@ export default function () {
             <Show when={item()}>
                 <div style={{ margin: '0 0 -1.5em 0', "text-align": 'right' }}>
                     &nbsp;
-                    <Show when={item()!.read}>[<a onClick={() => markAsUnread(item()!.id)}>Mark as unread</a>]</Show>
+                    <Show when={item()!._read}>[<a onClick={() => markAsUnread(item()!._id)}>Mark as unread</a>]</Show>
                 </div>
                 <article>
                     <h1
                         class="title"
-                        innerHTML={`${item()!.title} <small><a href="${item()?.link}" title="Original website">&#128279;</a></small>`}>
+                        innerHTML={`${item()!.title} <small><a href="${item()?.url}" title="Original website">&#128279;</a></small>`}>
                     </h1>
                     <div class="meta">
                         {item()!.author && `by ${item()!.author?.name}, `}

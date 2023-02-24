@@ -1,3 +1,4 @@
+import { createDexieArrayQuery, createDexieSignalQuery } from "solid-dexie"
 import db from "../helper/db"
 import { Item } from "../types"
 
@@ -12,34 +13,48 @@ function sortItemsByDate(items: Item[]) {
         ))
 }
 
-export async function getItemsCount(feedId: number) {
-    return await TABLE.where({ feedId }).count()
+export function getAllUnreadItemsCount() {
+    return createDexieSignalQuery(
+        () => TABLE.where({ _read: 0 }).count()
+    )
 }
 
-export async function getItemsUnreadCount(feedId: number) {
-    return await TABLE.where({ feedId, read: 0 }).count()
+export function getItemsCount(_feedId: number) {
+    return createDexieSignalQuery(
+        () => TABLE.where({ _feedId }).count()
+    )
 }
 
-export async function getItem(id: number) {
-    return await db.transaction('r', TABLE, async () => {
-        return await TABLE.get(Number(id))
-    })
+export function getUnreadItemsCount(_feedId: number) {
+    return createDexieSignalQuery(
+        () => TABLE.where({ _feedId, _read: 0 }).count()
+    )
 }
 
-export async function readItem(id: number) {
+export function getItem(id: number) {
+    return createDexieSignalQuery(() => TABLE.get(Number(id)))
+}
+
+export async function readItem(_id: number) {
     await db.transaction('rw', TABLE, () => {
-        TABLE.where({ id }).modify({ read: 1 })
+        TABLE.where({ _id }).modify({ _read: 1 })
     })
 }
 
-export async function readAllItems(feedId: number) {
+export async function readAllItems(_feedId: number) {
     await db.transaction('rw', TABLE, () => {
-        TABLE.where({ feedId }).modify({ read: 1 })
+        TABLE.where({ _feedId }).modify({ _read: 1 })
     })
 }
 
-export async function getItemsByChannel(feedId: number) {
-    return TABLE.where({ feedId }).toArray().then(sortItemsByDate)
+export async function getItemsByFeed(_feedId: number) {
+    return TABLE.where({ _feedId }).toArray().then(sortItemsByDate)
+}
+
+export function getItemsByFeedSignal(_feedId: number) {
+    return createDexieArrayQuery(
+        () => TABLE.where({ _feedId }).toArray().then(sortItemsByDate)
+    )
 }
 
 export async function getItems(where: object, offset: number, limit: number) {
@@ -54,10 +69,10 @@ export async function updateItem(where: object, data: object) {
     })
 }
 
-export async function insertItems(feedId: number, items: Item[]) {
+export async function insertItems(_feedId: number, items: Item[]) {
     const filtered = items.map(item => ({
         ...item,
-        feedId,
+        _feedId,
     })).reverse() // reverse so latest item get higher DB id
 
     await db.transaction('rw', TABLE, () => {
@@ -65,8 +80,8 @@ export async function insertItems(feedId: number, items: Item[]) {
     })
 }
 
-export async function deleteItems(feedId: number) {
+export async function deleteItems(_feedId: number) {
     await db.transaction('rw', TABLE, () => {
-        TABLE.where({ feedId }).delete()
+        TABLE.where({ _feedId }).delete()
     })
 }

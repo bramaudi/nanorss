@@ -4,24 +4,28 @@ const db = new Dexie('ReadSS_Feeds')
 
 db.version(1).stores({
     feeds: `
-        ++id,
+        ++_id,
+        _hash,
+        
+        url,
         title,
-        link,
-        description,
-        read_external,
-        view_all`,
+        description
+        `,
     items: `
-        ++id,
-        feedId,
-        read,
-        pin,
-        bookmark,
-        [feedId+read],
+        ++_id,
+        _feedId,
+        _read,
+        _saved,
+        [_feedId+_read],
+        [_feedId+_saved],
         
         title,
-        link,
-        pubDate,
-        description`
+        url,
+        author,
+        summary,
+        content,
+        lastModified
+        `
 })
 
 await db.open()
